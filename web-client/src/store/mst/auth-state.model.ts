@@ -1,11 +1,7 @@
 import { Instance, SnapshotIn, SnapshotOut, types } from "mobx-state-tree";
-import {
-  ApiServiceActionToken,
-  CreateSessionPayload,
-  FetchProfilePayload,
-} from "store/api-service/actions";
-import { withEnvironment } from "./extensions/with-environment";
-import { withStatus } from "./extensions/with-status";
+import { ApiServiceActionToken } from "store/api-service/actions";
+import { withApiDispatcher } from "./extensions/with-api-dispatcher";
+import { withRootState } from "./extensions/with-root-state";
 import {
   PublicProfile,
   PublicProfileModel,
@@ -20,8 +16,8 @@ export const AuthStateModel = types
     isAuthenticated: false,
     profile: types.maybeNull(types.reference(PublicProfileModel)),
   })
-  .extend(withEnvironment)
-  .extend(withStatus)
+  .extend(withApiDispatcher)
+  .extend(withRootState)
   .views((self) => ({
     // getRepetitionCount(delightId) {
     //   let count = 0;
@@ -29,49 +25,69 @@ export const AuthStateModel = types
     //   return count;
     // }
   }))
-  .actions((self) => ({
-    // Lifecycle hooks
-    // ==================================================
-    afterAttach: () => {},
+  .actions((self) => {
+    const privateMutations = {
+      setProfile(profile: PublicProfile) {
+        self.profile = profile;
+      },
+      setIsAuthticated(state: boolean) {
+        self.isAuthenticated = state;
+      },
+    };
 
-    // mutations
-    // ==================================================
-    setProfile(profile: PublicProfile) {
-      self.profile = profile;
-    },
-    setIsAuthticated(state: boolean) {
-      self.isAuthenticated = state;
-    },
+    const privateActions = {
+      initCheckAuth() {
+        self.dispatchApiAction(
+          ApiServiceActionToken.FETCH_PROFILE,
+          { votes: false, posts: false },
+          (profile) => {
+            // profile
+            console.log({ profile });
+            // self.rootState.
+            // self.profile = PublicProfileModel.create(profile);
+          }
+        );
+        // self.fetchErrorResponse({ votes: false, posts: false });
+      },
+    };
+    return {
+      // Lifecycle hooks
+      // ==================================================
+      afterAttach() {
+        privateActions.initCheckAuth();
+      },
 
-    // api actions
-    // ==================================================
-    createSession(payload: CreateSessionPayload) {
-      self.setStatus("pending");
-      self
-        .dispatchApiAction(ApiServiceActionToken.CREATE_SESSION, payload)
-        .then((res) => {
-          if (res.kind === "OK" && res.data) {
-            this.setProfile(res.data);
-          } else {
-            self.resolveFetchErrorResponse(res);
-          }
-          self.setStatus("idle");
-        });
-    },
-    fetchProfile(payload: FetchProfilePayload) {
-      self.setStatus("pending");
-      self
-        .dispatchApiAction(ApiServiceActionToken.FETCH_PROFILE, payload)
-        .then((res) => {
-          if (res.kind === "OK" && res.data) {
-            this.setProfile(res.data);
-          } else {
-            self.resolveFetchErrorResponse(res);
-          }
-          self.setStatus("idle");
-        });
-    },
-  }));
+      // api actions
+      // ==================================================
+      // createSession(payload: CreateSessionPayload) {
+      //   // self.rootState
+      //   self.setStatus("pending");
+      //   self
+      //     .dispatchApiAction(ApiServiceActionToken.CREATE_SESSION, payload)
+      //     .then((res) => {
+      //       if (res.kind === "OK" && res.data) {
+      //         this.setProfile(res.data);
+      //       } else {
+      //         self.resolveFetchErrorResponse(res);
+      //       }
+      //       self.setStatus("idle");
+      //     });
+      // },
+      // fetchProfile(payload: FetchProfilePayload) {
+      //   self.setStatus("pending");
+      //   self
+      //     .dispatchApiAction(ApiServiceActionToken.FETCH_PROFILE, payload)
+      //     .then((res) => {
+      //       if (res.kind === "OK" && res.data) {
+      //         this.setProfile(res.data);
+      //       } else {
+      //         self.resolveFetchErrorResponse(res);
+      //       }
+      //       self.setStatus("idle");
+      //     });
+      // },
+    };
+  });
 
 /**
  * Mobx Model: AuthState State

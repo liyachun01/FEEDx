@@ -4,6 +4,7 @@ import { MobxRootStateModel, MobxRootStateSnapshotIn } from "./root-state";
 export interface MobxEnvironment {
   setup: () => void;
   feedxApi: AbstractApiService;
+  // statusHandler: AbstractErrorService;
   // navStateStore: AbstractKeyValueStore;
 }
 
@@ -25,8 +26,6 @@ export async function setupMobxRootState({
   const rootState = MobxRootStateModel.create(defaultInitRootStateData, env);
 
   try {
-    rootState.initFeedx();
-    rootState.initAuthState();
   } catch (e) {
     console.log(e);
     // if there's any problems loading, then let's at least fallback to an empty store

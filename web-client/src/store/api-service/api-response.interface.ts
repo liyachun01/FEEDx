@@ -1,39 +1,58 @@
-import { ApiActionResult } from "./actions";
+import { AbstractApiActionResult } from "./actions";
 
 export enum GeneralApiResponseType {
-  TIMEOUT = "TIMEOUT",
-  CONNECTION_ERROR = "CONNECTION_ERROR",
+  CLIENT_ERROR = "CLIENT_ERROR",
   SERVER_ERROR = "SERVER_ERROR",
+  CONNECTION_ERROR = "CONNECTION_ERROR",
+  NETWORK_ERROR = "NETWORK_ERROR",
+  UNKNOWN_ERROR = "UNKNOWN_ERROR",
+  CANCEL_ERROR = "CANCEL_ERROR",
+
   UNAUTHORIZED = "UNAUTHORIZED",
   FORBIDDEN = "FORBIDDEN",
   NOT_FOUND = "NOT_FOUND",
   REJECTED = "REJECTED",
-  UNKNOWN = "UNKNOWN",
   BAD_REQUEST = "BAD_REQUEST",
   OK = "OK",
 }
-
-export type GeneralApiResponse<T extends ApiActionResult> = {
-  kind: GeneralApiResponseType;
-  temporary?: boolean;
-  data?: T;
-} | null;
-
-export const generalApiProblemStore: Record<
+export type GeneralApiResponseResultType = Extract<
   GeneralApiResponseType,
-  GeneralApiResponse<null>
-> = {
-  OK: { kind: GeneralApiResponseType.OK, data: null }, // never
-  TIMEOUT: { kind: GeneralApiResponseType.TIMEOUT, temporary: true },
-  CONNECTION_ERROR: {
-    kind: GeneralApiResponseType.CONNECTION_ERROR,
-    temporary: true,
-  },
-  SERVER_ERROR: { kind: GeneralApiResponseType.SERVER_ERROR },
-  UNAUTHORIZED: { kind: GeneralApiResponseType.UNAUTHORIZED },
-  FORBIDDEN: { kind: GeneralApiResponseType.FORBIDDEN },
-  NOT_FOUND: { kind: GeneralApiResponseType.NOT_FOUND },
-  REJECTED: { kind: GeneralApiResponseType.REJECTED },
-  UNKNOWN: { kind: GeneralApiResponseType.UNKNOWN, temporary: true },
-  BAD_REQUEST: { kind: GeneralApiResponseType.BAD_REQUEST },
-};
+  GeneralApiResponseType.OK
+>;
+export type GeneralApiResponseProblemType = Exclude<
+  GeneralApiResponseType,
+  GeneralApiResponseType.OK
+>;
+
+export type GeneralApiResponse<T extends AbstractApiActionResult> =
+  | {
+      kind: GeneralApiResponseResultType;
+      data: T;
+    }
+  | {
+      kind: GeneralApiResponseProblemType;
+      temporary: boolean;
+    };
+
+export function getGeneralApiResonse<T extends AbstractApiActionResult>(
+  data: T
+): GeneralApiResponse<T> {
+  return {
+    kind: GeneralApiResponseType.OK,
+    data,
+  };
+}
+
+export function getGeneralApiResponseProblem(
+  kind: GeneralApiResponseProblemType
+): GeneralApiResponse<never> {
+  const temporaryKinds = [
+    GeneralApiResponseType.CANCEL_ERROR,
+    GeneralApiResponseType.CONNECTION_ERROR,
+    GeneralApiResponseType.UNKNOWN_ERROR,
+  ];
+  return {
+    kind,
+    temporary: temporaryKinds.includes(kind),
+  };
+}

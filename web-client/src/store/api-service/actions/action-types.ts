@@ -4,12 +4,10 @@ import { AbstractApiService } from "../abstract-api-service.interface";
 
 // MISC
 // ====================================================================
-export type ApiActionPayload = Record<string, any>;
-export type ApiActionResult = Record<string, any> | null | undefined;
-export type NullableApiActionResult<T extends ApiActionResult> =
-  | T
-  | null
-  | undefined;
+export type AbstractApiActionPayload = Record<string, any>;
+export type AbstractApiActionResult = Record<string, any> | null | undefined;
+
+export type Nullable<T> = T | null | undefined;
 
 /**
  * All possible api actions here
@@ -34,13 +32,13 @@ export enum ApiServiceActionToken {
  *
  */
 export declare type AbstractApiActionType<
-  P extends ApiActionPayload,
-  R extends ApiActionResult
+  P extends AbstractApiActionPayload,
+  R extends AbstractApiActionResult
 > = (ctx: AbstractApiService<any, any>, payload: P) => Promise<R>;
 
 // Realife implementations of:
-// - ApiActionPayload
-// - NullableApiActionResult
+// - AbstractApiActionPayload
+// - Nullable
 // ====================================================================
 
 // Create session
@@ -68,26 +66,26 @@ export type CreateSessionPayload<T = AuthType> = T extends "login"
       password: string;
     }
   : never;
-export type CreateSessionResult = NullableApiActionResult<PublicProfile>;
+export type CreateSessionResult = Nullable<PublicProfile>;
 
 // Renew session
-export interface RenewSessionPayload extends ApiActionPayload {
+export interface RenewSessionPayload extends AbstractApiActionPayload {
   identifier: string;
   password: string;
 }
-export type RenewSessionResult = NullableApiActionResult<PublicProfile>;
+export type RenewSessionResult = Nullable<PublicProfile>;
 
 // Delete session
-// export interface DeleteSessionPayload extends ApiActionPayload {}
+// export interface DeleteSessionPayload extends AbstractApiActionPayload {}
 export type DeleteSessionPayload = undefined;
-export type DeleteSessionResult = NullableApiActionResult<{ destroyed: true }>;
+export type DeleteSessionResult = Nullable<{ destroyed: true }>;
 
 // Fetch profile (user private scope)
-export interface FetchProfilePayload extends ApiActionPayload {
+export interface FetchProfilePayload extends AbstractApiActionPayload {
   votes?: boolean;
   posts?: boolean;
 }
-export type FetchProfileResult = NullableApiActionResult<
+export type FetchProfileResult = Nullable<
   PublicProfile & {
     votes?: string[];
     posts?: string[];
@@ -95,18 +93,18 @@ export type FetchProfileResult = NullableApiActionResult<
 >;
 
 // Fetch feeds (with pagination)
-export interface FetchFeedsPayload extends ApiActionPayload {
+export interface FetchFeedsPayload extends AbstractApiActionPayload {
   pageSize: number;
   page: number;
 }
-export type FetchFeedsResult = NullableApiActionResult<{
+export type FetchFeedsResult = Nullable<{
   feeds: Feed[];
   total: number;
 }>;
 
 // Fetch feed detail
-export interface FetchFeedDetailPayload extends ApiActionPayload {
+export interface FetchFeedDetailPayload extends AbstractApiActionPayload {
   pageSize: number;
   page: number;
 }
-export type FetchFeedDetailResult = NullableApiActionResult<Feed>;
+export type FetchFeedDetailResult = Nullable<Feed>;

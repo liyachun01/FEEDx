@@ -10,21 +10,35 @@ export const MobxRootStateModel = types
     feedxStore: types.maybeNull(FeedxStoreModel),
     authState: types.maybeNull(AuthStateModel),
   })
+  .views((self) => ({
+    // computed values
+  }))
   .actions((self) => {
+    // mutations
+    // ==================================================
+    // why mutations as functions
+    // https://mobx-state-tree.js.org/concepts/actions
+    // the officical document says:
+    // You cannot use this inside actions. Instead, use self. This makes it safe to pass actions around without binding them or wrapping them in arrow functions.
+    // However it's runnable while using an action in another action, but still strange.
+    // create all direct sub models on root model creation
+    const mutations = {
+      initCreateModels() {
+        self.feedxStore = FeedxStoreModel.create();
+        self.authState = AuthStateModel.create();
+      },
+    };
+
     return {
       // Lifecycle hooks
-      // afterCreate() {
-      //   console.log("created MobxRootStateModel");
-      // },
-
-      initFeedx() {
-        self.feedxStore = FeedxStoreModel.create();
+      // ==================================================
+      afterCreate() {
+        mutations.initCreateModels();
       },
 
-      initAuthState() {
-        self.authState = AuthStateModel.create();
-        self.authState.fetchProfile({ votes: false, posts: false });
-      },
+      // actions
+      // ==================================================
+      // null
     };
   });
 

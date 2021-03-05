@@ -28,7 +28,7 @@ export default function FeedxRoutes() {
       <ProtectedRoute path="/profile">
         <ProfilePage />
       </ProtectedRoute>
-      {/* <Route path="*" component={NotFoundPage} /> */}
+      <Route path="*" component={NotFoundPage} />
     </>
   )
 }

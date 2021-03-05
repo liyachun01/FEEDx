@@ -58,12 +58,6 @@ export const withStatus = () => {
       setStatus(value: StatusType) {
         status.set(value);
       },
-
-      resolveFetchErrorResponse(res: GeneralApiResponse<any>) {
-        // TODO: resolve error response
-        fetchErrorResponse.set(res);
-        this.setStatus("error");
-      },
     },
   };
 };

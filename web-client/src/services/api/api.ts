@@ -1,6 +1,14 @@
-import { ApiResponse, ApisauceConfig, ApisauceInstance } from "apisauce";
-import { AbstractApiService } from "store/api-service";
-import { generalApiProblemStore as problemStore } from "../../store/api-service";
+import {
+  ApiResponse as ApiSauceResponse,
+  ApisauceConfig,
+  ApisauceInstance,
+} from "apisauce";
+import {
+  AbstractApiService,
+  GeneralApiResponseProblemType,
+  GeneralApiResponseType,
+  getGeneralApiResponseProblem,
+} from "store/api-service";
 
 /**
  * Manages all requests to the API.
@@ -9,34 +17,26 @@ export class ApiService extends AbstractApiService<
   ApisauceInstance,
   ApisauceConfig
 > {
-  protected getGeneralProblem(response: ApiResponse<any>) {
-    // const isResponseInstance = response instanceof ApisauceInstance
-    switch (response.problem) {
-      case "CONNECTION_ERROR":
-        return problemStore.CONNECTION_ERROR;
-      case "NETWORK_ERROR":
-        return problemStore.CONNECTION_ERROR;
-      case "TIMEOUT_ERROR":
-        return problemStore.TIMEOUT;
-      case "SERVER_ERROR":
-        return problemStore.SERVER_ERROR;
-      case "UNKNOWN_ERROR":
-        return problemStore.UNKNOWN;
-      case "CLIENT_ERROR":
-        switch (response.status) {
-          case 401:
-            return problemStore.UNAUTHORIZED;
-          case 403:
-            return problemStore.FORBIDDEN;
-          case 404:
-            return problemStore.NOT_FOUND;
-          default:
-            return problemStore.REJECTED;
-        }
-      case "CANCEL_ERROR":
-        return null;
+  protected _getApiResponseProblem(response: ApiSauceResponse<any>) {
+    const problemCode = response.problem;
+    if (problemCode === "CLIENT_ERROR") {
+      switch (response.status) {
+        case 401:
+          return getGeneralApiResponseProblem(
+            GeneralApiResponseType.UNAUTHORIZED
+          );
+        case 403:
+          return getGeneralApiResponseProblem(GeneralApiResponseType.FORBIDDEN);
+        case 404:
+          return getGeneralApiResponseProblem(GeneralApiResponseType.NOT_FOUND);
+        default:
+          return getGeneralApiResponseProblem(GeneralApiResponseType.REJECTED);
+      }
+    } else {
+      return getGeneralApiResponseProblem(
+        problemCode as GeneralApiResponseProblemType
+      );
     }
-    return null;
   }
 
   public async request<D>(config: Partial<ApisauceConfig>): Promise<D> {

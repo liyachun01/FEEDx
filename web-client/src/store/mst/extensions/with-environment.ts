@@ -6,11 +6,5 @@ export const withEnvironment = (self: IStateTreeNode) => ({
     get environment() {
       return getEnv<MobxEnvironment>(self);
     },
-    // dispatch api action
-    get dispatchApiAction() {
-      const apiInstance = getEnv<MobxEnvironment>(self).feedxApi;
-      // don't mess up with `this`!
-      return apiInstance.dispatch.bind(apiInstance);
-    },
   },
 });

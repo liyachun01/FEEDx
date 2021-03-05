@@ -3,6 +3,7 @@ import {
   ApiServiceActionToken,
   FetchFeedsPayload,
 } from "store/api-service/actions";
+import { withApiDispatcher } from "../extensions/with-api-dispatcher";
 import { withEnvironment } from "../extensions/with-environment";
 import { withStatus } from "../extensions/with-status";
 import { FeedVoteModel } from "./feed-vote.model";
@@ -33,8 +34,7 @@ export const FeedxStoreModel = types
     profiles: types.optional(types.map(PublicProfileModel), {}),
     votes: types.optional(types.map(FeedVoteModel), {}),
   })
-  .extend(withEnvironment)
-  .extend(withStatus)
+  .extend(withApiDispatcher)
   .views((self) => ({
     trendingFeeds(dateRange = FeedListFilterDateRangeToken.ALL) {
       const feed = self.feeds.get("1ds");
@@ -61,22 +61,22 @@ export const FeedxStoreModel = types
 
     // actions
     // ==================================================
-    fetchFeeds(payload: FetchFeedsPayload) {
-      self.setStatus("pending");
-      // self.environment.feedxApi.dispatch()
-      console.log("fetching feeds");
-      self
-        .dispatchApiAction(ApiServiceActionToken.FETCH_FEEDS, payload)
-        .then((res) => {
-          if (res?.kind === "OK") {
-            this.setFeeds(res.data?.feeds);
-          } else {
-            self.resolveFetchErrorResponse(res);
-          }
-          this.setLastUpdated();
-          self.setStatus("idle");
-        });
-    },
+    // fetchFeeds(payload: FetchFeedsPayload) {
+    //   self.setStatus("pending");
+    //   // self.environment.feedxApi.dispatch()
+    //   console.log("fetching feeds");
+    //   self
+    //     .dispatchApiAction(ApiServiceActionToken.FETCH_FEEDS, payload)
+    //     .then((res) => {
+    //       if (res?.kind === "OK") {
+    //         this.setFeeds(res.data?.feeds);
+    //       } else {
+    //         self.resolveFetchErrorResponse(res);
+    //       }
+    //       this.setLastUpdated();
+    //       self.setStatus("idle");
+    //     });
+    // },
   }));
 
 /**

@@ -1,8 +1,12 @@
-import { ApiActionsObjectLiteral, IApiActionsObjectLiteral } from "./actions";
-import { ApiActionResult, ApiServiceActionToken } from "./actions/action-types";
+import {
+  AbstractApiActionResult,
+  ApiActionsObjectLiteral,
+  ApiServiceActionToken,
+  IApiActionsObjectLiteral,
+} from "./actions";
 import {
   GeneralApiResponse,
-  GeneralApiResponseType
+  getGeneralApiResonse,
 } from "./api-response.interface";
 
 /**
@@ -24,13 +28,12 @@ export abstract class AbstractApiService<I = any, C = any> {
     return this._apiInstance !== undefined;
   }
 
-  // utils
-  private _getGeneralResponse<D extends ApiActionResult>(
-    data: D
-  ): GeneralApiResponse<D> {
-    return { kind: GeneralApiResponseType.OK, data };
+  private _getApiResponseResult<D extends AbstractApiActionResult>(data: D) {
+    return getGeneralApiResonse(data);
   }
-  protected abstract getGeneralProblem(r: any): GeneralApiResponse<null>;
+  protected abstract _getApiResponseProblem(
+    r: never
+  ): GeneralApiResponse<never>;
 
   /**
    * get ready the instance
@@ -46,25 +49,22 @@ export abstract class AbstractApiService<I = any, C = any> {
    * dispatch an api action
    *
    * @template A ApiServiceActionToken
-   * @template P payload of the action
-   * @template D return data type of the action
+   * @template P The payload of the action
+   * @template D return type of the action
    * @param {A} actionToken
    * @param {P} payload
-   * @returns {Promise<GeneralApiResponse<D>>}
+   * @param {(data: D) => any} resolve
+   * @returns {Promise<GeneralApiResponse<D | never>>} // not exact match but IT"S NOT WRONG!
    * @memberof AbstractApiService
    */
   public async dispatch<
     A extends ApiServiceActionToken,
     P = Parameters<ApiActionsObjectLiteral[A]>[1],
-    // Unpack type from promise<type>
     D = UnpackedType<ReturnType<ApiActionsObjectLiteral[A]>>
-  >(actionToken: A, payload: P): Promise<GeneralApiResponse<D | null>> {
-    try {
-      const data: D = await this._actions[actionToken](this, payload);
-      return this._getGeneralResponse<D>(data);
-    } catch (e: any) {
-      return this.getGeneralProblem(e);
-    }
+  >(actionToken: A, payload: P) {
+    return this._actions[actionToken](this, payload)
+      .then((data: D) => this._getApiResponseResult<D>(data))
+      .catch(this._getApiResponseProblem);
   }
 
   public abstract request<D>(opts: Partial<C>): Promise<D | undefined>;

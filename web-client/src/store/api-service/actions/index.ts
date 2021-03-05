@@ -1,7 +1,8 @@
 import { AbstractApiService } from "../abstract-api-service.interface";
 import {
+  AbstractApiActionPayload,
+  AbstractApiActionResult,
   AbstractApiActionType,
-  ApiActionPayload,
   ApiServiceActionToken,
   CreateSessionPayload,
   CreateSessionResult,
@@ -16,7 +17,10 @@ import {
 // actions object literal
 export type IApiActionsObjectLiteral<I = any, C = any> = Record<
   ApiServiceActionToken,
-  (ctx: AbstractApiService<I, C>, payload: ApiActionPayload) => Promise<any>
+  (
+    ctx: AbstractApiService<I, C>,
+    payload: AbstractApiActionPayload
+  ) => Promise<AbstractApiActionResult>
 >;
 export class ApiActionsObjectLiteral {
   [ApiServiceActionToken.CREATE_SESSION]: AbstractApiActionType<
